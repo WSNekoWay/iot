@@ -5,40 +5,34 @@
 //  Created by WanSen on 10/12/24.
 //
 import SwiftUI
-
+import FirebaseCore
 struct ContentView: View {
+    @StateObject private var viewModel = FeedingScheduleViewModel()
     @State private var showAddSheet = false // State for showing the sheet
-    @State private var feedingSchedule = ["07:00", "12:00", "17:00"] // Only times as schedule
-    @State private var suhu = "28°C" // Temperature value
-    @State private var ph = "7.5"    // pH value
 
     var body: some View {
         VStack(spacing: 20) {
-            // Suhu and pH View
-            
             HStack {
                 Text("Kontrol Tambak")
-                    .font(.system(size: 28)) // Set a custom font size
-                    .fontWeight(.bold)       // Optional: Add weight for emphasis
+                    .font(.system(size: 28))
+                    .fontWeight(.bold)
             }
 
             HStack(spacing: 20) {
-                // Suhu View
                 VStack {
                     Text("Suhu")
                         .font(.headline)
-                    Text(suhu)
+                    Text("28°C")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
                 }
                 .frame(maxWidth: .infinity)
-                
-                // pH View
+
                 VStack {
                     Text("pH")
                         .font(.headline)
-                    Text(ph)
+                    Text("7.5")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
@@ -46,55 +40,42 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(.horizontal)
-            
-            // Jadwal Pakan View
+
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("Jadwal Pakan")
                         .font(.headline)
                     Spacer()
                     Button(action: {
-                        if feedingSchedule.count < 10 {
-                            showAddSheet = true // Show the sheet
+                        if viewModel.feedingSchedules.count < 10 {
+                            showAddSheet = true
                         }
                     }) {
                         Image(systemName: "plus")
                             .font(.title2)
                             .padding(8)
-                            .background(feedingSchedule.count < 10 ? Color.blue : Color.gray)
+                            .background(viewModel.feedingSchedules.count < 10 ? Color.blue : Color.gray)
                             .foregroundColor(.white)
                             .clipShape(Circle())
                     }
-                    .disabled(feedingSchedule.count >= 10) // Disable the button when the limit is reached
+                    .disabled(viewModel.feedingSchedules.count >= 10)
                 }
-                
-                // Check if the list is empty
-                if feedingSchedule.isEmpty {
-                    VStack{
-                        Spacer()
-                        HStack{
-                            Spacer()
-                            Text("Belum Ada Jadwal Otomatis Pemberian Pakan")
-                                .font(.body)
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                            Spacer()
-                        }
-                        Spacer()
-                    }
+
+                if viewModel.feedingSchedules.isEmpty {
+                    Text("Belum Ada Jadwal Otomatis Pemberian Pakan")
+                        .font(.body)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
                 } else {
-                    // Feeding Schedule Items
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(feedingSchedule, id: \.self) { time in
+                        ForEach(viewModel.feedingSchedules) { schedule in
                             HStack {
-                                Text(time)
+                                Text(schedule.time)
                                     .font(.title3)
                                     .padding(.vertical, 8)
                                 Spacer()
                                 Button(action: {
-                                    if let index = feedingSchedule.firstIndex(of: time) {
-                                        feedingSchedule.remove(at: index)
-                                    }
+                                    viewModel.deleteFeedingSchedule(schedule: schedule)
                                 }) {
                                     Image(systemName: "trash")
                                         .foregroundColor(.red)
@@ -112,10 +93,9 @@ struct ContentView: View {
                 }
             }
             .padding(.horizontal)
-            
+
             Spacer()
-            
-            // Kasih Makan Button
+
             HStack {
                 Spacer()
                 Button(action: {
@@ -133,10 +113,11 @@ struct ContentView: View {
         }
         .padding()
         .sheet(isPresented: $showAddSheet) {
-            AddFeedingScheduleView(feedingSchedule: $feedingSchedule)
+            AddFeedingScheduleView(viewModel: viewModel)
         }
     }
 }
+
 
 #Preview {
     ContentView()

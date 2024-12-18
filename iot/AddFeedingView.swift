@@ -7,9 +7,9 @@
 import SwiftUI
 
 struct AddFeedingScheduleView: View {
-    @Binding var feedingSchedule: [String]
+    @ObservedObject var viewModel: FeedingScheduleViewModel
     @Environment(\.dismiss) var dismiss
-    @State private var selectedTime = Date() // State for selected time
+    @State private var selectedTime = Date()
 
     var body: some View {
         NavigationView {
@@ -18,23 +18,21 @@ struct AddFeedingScheduleView: View {
                     .font(.headline)
                     .padding(.top)
 
-                // Time Picker for selecting hours and minutes
                 DatePicker(
                     "Jam dan Menit",
                     selection: $selectedTime,
                     displayedComponents: [.hourAndMinute]
                 )
                 .datePickerStyle(WheelDatePickerStyle())
-                .labelsHidden() // Hides label for cleaner UI
+                .labelsHidden()
                 .padding()
 
                 Button(action: {
-                    // Format and add the selected time to the schedule
                     let formatter = DateFormatter()
                     formatter.dateFormat = "HH:mm"
                     let timeString = formatter.string(from: selectedTime)
-                    feedingSchedule.append(timeString) // Add new schedule
-                    dismiss() // Dismiss the sheet
+                    viewModel.addFeedingSchedule(time: timeString)
+                    dismiss()
                 }) {
                     Text("Tambah")
                         .font(.headline)
@@ -56,9 +54,5 @@ struct AddFeedingScheduleView: View {
             }
         }
     }
-}
-
-#Preview {
-    AddFeedingScheduleView(feedingSchedule: .constant(["07:00", "12:00", "17:00"]))
 }
 
